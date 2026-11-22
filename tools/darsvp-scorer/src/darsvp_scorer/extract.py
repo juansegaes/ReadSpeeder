@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 from ebooklib import epub
 
 from .textnorm import split_paragraph
+from .wordrepair import repair_merged_words
 
 SUPPORTED_LANGUAGES = ("en", "es", "fr", "de", "it", "pt")
 
@@ -138,22 +139,34 @@ def _remove_footnotes(soup: BeautifulSoup) -> None:
         br.replace_with(" ")
 
 
-def _block_paragraphs(soup: BeautifulSoup) -> list[list[str]]:
+def _block_paragraphs(
+    soup: BeautifulSoup,
+    language: str | None = None,
+    repair: bool = True,
+) -> list[list[str]]:
     paragraphs: list[list[str]] = []
     for element in soup.find_all(_BLOCK_TAGS):
         if element.find(_BLOCK_TAGS) is not None:
             continue
-        words = split_paragraph(element.get_text())
+        words = split_paragraph(element.get_text(), join_inner_tabs=True)
+        if language and repair:
+            words = repair_merged_words(words, language)
         if words:
             paragraphs.append(words)
     return paragraphs
 
 
-def _fallback_paragraphs(soup: BeautifulSoup) -> list[list[str]]:
+def _fallback_paragraphs(
+    soup: BeautifulSoup,
+    language: str | None = None,
+    repair: bool = True,
+) -> list[list[str]]:
     body = soup.body or soup
     paragraphs: list[list[str]] = []
     for line in body.get_text("\n").split("\n"):
-        words = split_paragraph(line)
+        words = split_paragraph(line, join_inner_tabs=True)
+        if language and repair:
+            words = repair_merged_words(words, language)
         if words:
             paragraphs.append(words)
     return paragraphs
@@ -196,7 +209,7 @@ def _cover_bytes(book: epub.EpubBook) -> bytes | None:
     return None
 
 
-def _load_epub(path: Path, include_cover: bool) -> Book:
+def _load_epub(path: Path, include_cover: bool, repair_merged: bool = True) -> Book:
     book = epub.read_epub(str(path))
     title = _metadata(book, "DC", "title") or path.stem
     author = _metadata(book, "DC", "creator")
@@ -219,9 +232,9 @@ def _load_epub(path: Path, include_cover: bool) -> Book:
             continue
         soup = BeautifulSoup(item.get_content(), "html.parser")
         _remove_footnotes(soup)
-        paragraphs = _block_paragraphs(soup)
+        paragraphs = _block_paragraphs(soup, language, repair_merged)
         if not paragraphs:
-            paragraphs = _fallback_paragraphs(soup)
+            paragraphs = _fallback_paragraphs(soup, language, repair_merged)
         if not paragraphs:
             continue
         name = item.get_name()
@@ -241,12 +254,16 @@ def _load_epub(path: Path, include_cover: bool) -> Book:
     )
 
 
-def load_book(path: Path, include_cover: bool = True) -> Book:
+def load_book(
+    path: Path,
+    include_cover: bool = True,
+    repair_merged: bool = True,
+) -> Book:
     """Load a TXT or EPUB file into a :class:`Book`."""
     path = Path(path)
     suffix = path.suffix.lower()
     if suffix == ".txt":
         return _load_txt(path)
     if suffix == ".epub":
-        return _load_epub(path, include_cover)
+        return _load_epub(path, include_cover, repair_merged)
     raise ValueError(f"Unsupported input type: {path.suffix or '(none)'}")

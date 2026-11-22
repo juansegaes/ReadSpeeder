@@ -17,6 +17,13 @@ def test_tabs_and_newlines_collapse():
     assert clean_text("a\tb\nc\r\nd") == "a b c d"
 
 
+def test_inner_tabs_are_joined_only_when_requested():
+    assert split_paragraph("press\ted h\tard") == ["press", "ed", "h", "ard"]
+    assert split_paragraph("press\ted h\tard", join_inner_tabs=True) == ["pressed", "hard"]
+    assert split_paragraph("Alice's\t elbow", join_inner_tabs=True) == ["Alice's", "elbow"]
+    assert split_paragraph("the\t roo\tts", join_inner_tabs=True) == ["the", "roots"]
+
+
 def test_word_core_examples():
     assert word_core("“Hello,”") == "Hello"
     assert word_core("state-of-the-art.") == "state-of-the-art"

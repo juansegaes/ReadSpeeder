@@ -15,6 +15,11 @@ Notable changes to ReadSpeeder are documented here.
 - A desktop scorer (`tools/darsvp-scorer`) with a SmolLM3 llama.cpp backend,
   Vulkan acceleration, caching, inspection, and a frequency-only fallback.
 
+### Fixed
+
+- EPUB extraction no longer splits words on in-word tabs or leaves clear
+  conversion merges like `Thencame` as one word.
+
 ### Changed
 
 - Document caches use codec version 2 so scored documents keep their word

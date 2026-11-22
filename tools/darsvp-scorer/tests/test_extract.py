@@ -17,7 +17,9 @@ def _build_epub(path: Path) -> None:
     first.content = (
         "<html><body><h1>Chapter One</h1>"
         "<p>It was <i>very</i> cold.<sup>1</sup></p>"
-        "<p>Second para<br/>with break.</p></body></html>"
+        "<p>Second para<br/>with break.</p>"
+        "<p>press\ted h\tard, mag\tic.</p>"
+        "<p>Thencame a bright day.</p></body></html>"
     )
     second = epub.EpubHtml(title="Chapter Two", file_name="c2.xhtml", lang="en")
     second.content = (
@@ -55,6 +57,14 @@ def test_epub_chapters_and_cleanup(tmp_path):
     assert "1" not in words
     assert "with" in words
     assert "break." in words
+    assert "pressed" in words
+    assert "hard," in words
+    assert "magic." in words
+    assert "press" not in words
+    assert "ed" not in words
+    assert "Then" in words
+    assert "came" in words
+    assert "Thencame" not in words
 
     all_words = [word for chapter in book.chapters for paragraph in chapter.paragraphs for word in paragraph]
     assert "skipped." not in all_words

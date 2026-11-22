@@ -94,9 +94,28 @@ Useful options:
 - `--cache-dir PATH` — cache model surprisal values (default `.darsvp-cache`).
 - `--max-words N` — score only the first N words (rounded to a paragraph end).
 - `--no-cover` — omit the cover image.
+- `--no-repair-merged-words` — keep words that EPUB conversion accidentally
+  joined. By default the scorer splits clear cases such as `Thencame` into
+  `Then came`; see below.
 
 The cache key includes the model file name and the full word stream, so changing
 either re-scores from scratch. Keep the cache out of version control.
+
+## EPUB text cleanup
+
+Some EPUBs come from scanned or PDF text and carry artifacts that break words
+apart or join them together. The scorer cleans the common cases:
+
+- **Tabs inside a word** (`press\ted`, `wha\tev\ter`) are removed, because a tab
+  between two letters is a conversion artifact, not a word separator. Tabs next
+  to whitespace still become spaces.
+- **Merged words** (`Thencame`, `sayto`, `mypoor`) are split when the whole token
+  is unknown to the word-frequency dictionary and both halves are common words.
+  The split is conservative: known words like `jurymen` are left alone. Disable
+  it with `--no-repair-merged-words`.
+- Soft hyphens and zero-width characters are removed.
+- Missing spaces that produce a plausible single word cannot be recovered, so a
+  badly converted EPUB may still contain a few artifacts.
 
 ## The weight formula
 

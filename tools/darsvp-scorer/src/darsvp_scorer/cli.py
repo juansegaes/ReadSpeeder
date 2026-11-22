@@ -58,6 +58,11 @@ def _build_parser() -> argparse.ArgumentParser:
     score.add_argument("--overlap", type=int, default=256)
     score.add_argument("--n-gpu-layers", type=int, default=-1)
     score.add_argument("--no-cover", action="store_true")
+    score.add_argument(
+        "--no-repair-merged-words",
+        action="store_true",
+        help="keep words that EPUB conversion accidentally joined",
+    )
     score.add_argument("--debug-fields", action="store_true")
     score.add_argument("--cache-dir", type=Path, default=Path(".darsvp-cache"))
     score.add_argument("--max-words", type=int)
@@ -102,7 +107,11 @@ def _score(args) -> int:
     if args.normalize:
         cfg = Config(**{**cfg.__dict__, "normalize": args.normalize})
 
-    book = load_book(args.input, include_cover=not args.no_cover)
+    book = load_book(
+        args.input,
+        include_cover=not args.no_cover,
+        repair_merged=not args.no_repair_merged_words,
+    )
     stream = flatten_book(book)
     if args.max_words is not None:
         stream = truncate_stream(stream, args.max_words)

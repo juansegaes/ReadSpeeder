@@ -72,7 +72,46 @@ class PersistenceTest {
         assertEquals(expected.copy(cover = null), DocumentCodec.decode(bytes).copy(cover = null))
         assertArrayEquals(expected.cover, DocumentCodec.decodeCover(bytes))
         assertEquals(expected.toLibraryDocument(), DocumentCodec.decodeSummary(bytes))
-        assertArrayEquals(bytes, DocumentCodec.encode(expected))
+    }
+
+    @Test
+    fun scoredDocumentCacheRoundTrips() {
+        val document = ReadDocument(
+            id = "scored",
+            title = "Scored Book",
+            author = "Author",
+            text = "One two three.",
+            cover = byteArrayOf(1, 2, 3),
+            chapters = listOf(DocumentChapter("Chapter One", 0)),
+            progress = 42,
+            wordWeights = shortArrayOf(62, 150, 250),
+        )
+
+        val bytes = DocumentCodec.encode(document)
+        val restored = DocumentCodec.decode(bytes)
+
+        assertTrue(restored.wordWeights!!.contentEquals(shortArrayOf(62, 150, 250)))
+        assertEquals(
+            document.copy(cover = null, wordWeights = null),
+            restored.copy(cover = null, wordWeights = null),
+        )
+        assertArrayEquals(document.cover, DocumentCodec.decodeCover(bytes))
+        assertEquals(document.toLibraryDocument(), DocumentCodec.decodeSummary(bytes))
+    }
+
+    @Test
+    fun unscoredDocumentCacheRoundTripsWithoutWeights() {
+        val document = ReadDocument(
+            id = "plain",
+            title = "Plain Book",
+            author = null,
+            text = "One two three.",
+        )
+
+        val restored = DocumentCodec.decode(DocumentCodec.encode(document))
+
+        assertEquals(null, restored.wordWeights)
+        assertEquals(document, restored)
     }
 
     @Test

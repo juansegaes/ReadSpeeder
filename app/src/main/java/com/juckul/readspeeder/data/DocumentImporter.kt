@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.text.Html
+import android.util.Base64
 import android.util.Xml
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
@@ -20,7 +21,7 @@ import java.io.InputStream
 import java.nio.charset.StandardCharsets
 
 internal const val MaxDocumentBytes = 50 * 1024 * 1024
-private const val MaxExtractedCharacters = 5_000_000
+internal const val MaxExtractedCharacters = 5_000_000
 private const val MaxCoverDimension = 1_024
 private const val CoverQuality = 85
 private const val FormattedBlockLines = 50
@@ -66,10 +67,30 @@ internal object DocumentImporter {
         val extension = name.substringAfterLast('.', "").lowercase()
         val mimeType = resolver.getType(uri)
         val format = when {
+            extension == "json" || mimeType == "application/json" -> "DARSVP"
             extension == "txt" || mimeType == "text/plain" -> "TXT"
             extension == "pdf" || mimeType == "application/pdf" -> "PDF"
             extension == "epub" || mimeType == "application/epub+zip" -> "EPUB"
-            else -> error("Only TXT, PDF, and EPUB documents are supported")
+            else -> error(
+                "Only TXT, PDF, EPUB, and daRSVP (.darsvp.json) documents are supported",
+            )
+        }
+        if (format == "DARSVP") {
+            val json = resolver.openInputStream(uri)?.use {
+                it.readLimited().decodeText()
+            } ?: error("Unable to open document")
+            val content = parseDarsvp(json)
+            return ReadDocument(
+                id = uri.toString(),
+                title = content.title
+                    ?: name.removeSuffix(".json").removeSuffix(".darsvp")
+                        .ifBlank { name },
+                author = content.author,
+                text = content.text,
+                cover = content.coverBase64?.let(::decodeDarsvpCover),
+                chapters = content.chapters,
+                wordWeights = content.weights,
+            )
         }
         val content = resolver.openInputStream(uri)?.use { stream ->
             when (format) {
@@ -349,6 +370,12 @@ private fun String.wordCount(): Int =
 
 private fun String?.cleanMetadata(): String? =
     this?.trim()?.takeIf(String::isNotEmpty)
+
+private fun decodeDarsvpCover(base64: String): ByteArray? = try {
+    Base64.decode(base64, Base64.DEFAULT).toThumbnail()
+} catch (_: Exception) {
+    null
+}
 
 private fun ByteArray.toThumbnail(): ByteArray? {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }

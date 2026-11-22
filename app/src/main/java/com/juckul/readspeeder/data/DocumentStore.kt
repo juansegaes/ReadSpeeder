@@ -11,6 +11,7 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import java.security.MessageDigest
 
 internal data class LibraryStorage(val documentCount: Int, val bytes: Long)
@@ -321,10 +322,11 @@ internal class DocumentStore(context: Context) {
 
 internal object DocumentCodec {
     private const val Magic = 0x52535044
-    private const val Version = 1
+    private const val Version = 2
     private const val MaxStringBytes = 50 * 1024 * 1024
     private const val MaxItems = 10_000
     private const val MaxCoverBytes = 20 * 1024 * 1024
+    private const val MaxWordWeights = 5_000_000
 
     fun encode(document: ReadDocument, stream: OutputStream) {
         require(document.formattedHtml.size <= MaxItems) {
@@ -356,6 +358,14 @@ internal object DocumentCodec {
                 write(it)
             }
             writeInt(document.progress.coerceIn(0, 100))
+            writeBoolean(document.wordWeights != null)
+            document.wordWeights?.let { weights ->
+                require(weights.size <= MaxWordWeights) { "Too many word weights" }
+                writeInt(weights.size)
+                val buffer = ByteBuffer.allocate(weights.size * 2)
+                buffer.asShortBuffer().put(weights)
+                write(buffer.array())
+            }
             flush()
         }
     }
@@ -368,7 +378,7 @@ internal object DocumentCodec {
 
     fun decode(stream: InputStream): ReadDocument {
         val input = DataInputStream(stream)
-        input.readHeader()
+        val version = input.readHeader()
         val id = input.readString()
         val title = input.readString()
         val author = if (input.readBoolean()) input.readString() else null
@@ -381,6 +391,7 @@ internal object DocumentCodec {
         }
         val cover = input.readCover()
         val progress = input.readInt().coerceIn(0, 100)
+        val wordWeights = if (version >= 2) input.readWordWeights() else null
         require(input.read() == -1) { "Unexpected document cache data" }
         return ReadDocument(
             id = id,
@@ -391,6 +402,7 @@ internal object DocumentCodec {
             cover = cover,
             chapters = chapters,
             progress = progress,
+            wordWeights = wordWeights,
         )
     }
 
@@ -399,7 +411,7 @@ internal object DocumentCodec {
 
     fun decodeSummary(stream: InputStream): LibraryDocument {
         val input = DataInputStream(stream)
-        input.readHeader()
+        val version = input.readHeader()
         val id = input.readString()
         val title = input.readString()
         val author = if (input.readBoolean()) input.readString() else null
@@ -411,6 +423,7 @@ internal object DocumentCodec {
         }
         val hasCover = input.skipCover()
         val progress = input.readInt().coerceIn(0, 100)
+        if (version >= 2) input.skipWordWeights()
         require(input.read() == -1) { "Unexpected document cache data" }
         return LibraryDocument(id, title, author, hasCover, progress)
     }
@@ -420,7 +433,7 @@ internal object DocumentCodec {
 
     fun decodeCover(stream: InputStream): ByteArray? {
         val input = DataInputStream(stream)
-        input.readHeader()
+        val version = input.readHeader()
         input.skipString()
         input.skipString()
         if (input.readBoolean()) input.skipString()
@@ -432,6 +445,7 @@ internal object DocumentCodec {
         }
         val cover = input.readCover()
         input.readInt()
+        if (version >= 2) input.skipWordWeights()
         require(input.read() == -1) { "Unexpected document cache data" }
         return cover
     }
@@ -439,9 +453,27 @@ internal object DocumentCodec {
     fun decodeCover(bytes: ByteArray): ByteArray? =
         ByteArrayInputStream(bytes).use(::decodeCover)
 
-    private fun DataInputStream.readHeader() {
+    private fun DataInputStream.readHeader(): Int {
         require(readInt() == Magic) { "Invalid document cache" }
-        require(readInt() == Version) { "Unsupported document cache" }
+        val version = readInt()
+        require(version in 1..Version) { "Unsupported document cache" }
+        return version
+    }
+
+    private fun DataInputStream.readWordWeights(): ShortArray? {
+        if (!readBoolean()) return null
+        val size = readInt()
+        require(size in 0..MaxWordWeights) { "Invalid word weights" }
+        val bytes = ByteArray(size * 2).also(::readFully)
+        return ShortArray(size).also { ByteBuffer.wrap(bytes).asShortBuffer().get(it) }
+    }
+
+    private fun DataInputStream.skipWordWeights() {
+        if (readBoolean()) {
+            val size = readInt()
+            require(size in 0..MaxWordWeights) { "Invalid word weights" }
+            skipFully(size * 2)
+        }
     }
 
     private fun DataOutputStream.writeString(value: String) {

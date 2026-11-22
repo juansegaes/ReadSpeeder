@@ -104,6 +104,8 @@ private val SupportedDocumentTypes = arrayOf(
     "text/plain",
     "application/pdf",
     "application/epub+zip",
+    "application/json",
+    "application/octet-stream",
 )
 
 internal enum class AppDestination(val titleRes: Int, val icon: ImageVector) {

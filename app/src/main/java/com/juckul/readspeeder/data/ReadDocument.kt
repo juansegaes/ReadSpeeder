@@ -17,6 +17,7 @@ internal data class ReadDocument(
     val chapters: List<DocumentChapter> = emptyList(),
     val progress: Int = 0,
     val progressPosition: Int = progress * (ProgressPositionScale / 100),
+    val wordWeights: ShortArray? = null,
 )
 
 internal data class LibraryDocument(

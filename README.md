@@ -4,6 +4,24 @@ The RSVP reading app for android
 
 [![Release qualification](https://github.com/juccul/ReadSpeeder/actions/workflows/release-qualification.yml/badge.svg)](https://github.com/juccul/ReadSpeeder/actions/workflows/release-qualification.yml)
 
+## daRSVP fork
+
+This fork adds **dynamic adaptive RSVP (daRSVP)** to ReadSpeeder. A desktop
+scorer reads a book and gives every word its own display time from word length,
+frequency, language-model surprisal, and punctuation. The app imports the
+resulting `.darsvp.json` file and plays it with those timings. Ordinary
+TXT/PDF/EPUB documents keep the existing fixed-speed and smart-pause behavior.
+
+Workflow:
+
+1. Score the book on a PC with the
+   [daRSVP scorer](tools/darsvp-scorer/README.md).
+2. Copy the `.darsvp.json` file to the phone.
+3. Import it from the app's add button and read it.
+
+Read the background article:
+[What is daRSVP?](https://www.gardenofadam.com/writing/what-is-darsvp/)
+
 ReadSpeeder is a free and open-source Android app for reading text with rapid
 serial visual presentation (RSVP) or a conventional scrolling reader. Use it to
 work through books, articles, study material, and pasted text at your own pace.
@@ -11,6 +29,7 @@ work through books, articles, study material, and pasted text at your own pace.
 ## Features
 
 - Import TXT, PDF, and EPUB documents, or paste text directly into the app.
+- Import daRSVP-scored `.darsvp.json` books with per-word timing.
 - Read one word at a time with adjustable RSVP speed, or switch to standard reading.
 - Navigate chapters and automatically resume from saved reading progress.
 - Organize a local library with covers, search, sorting, metadata editing, and deletion.

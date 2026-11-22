@@ -2,6 +2,22 @@
 
 Notable changes to ReadSpeeder are documented here.
 
+## Unreleased
+
+### Added
+
+- daRSVP support: import `.darsvp.json` books scored on a PC and play each word
+  with its own timing from word length, frequency, language-model surprisal,
+  and punctuation.
+- A "daRSVP timing for scored books" setting, on by default.
+- A desktop scorer (`tools/darsvp-scorer`) with a SmolLM3 llama.cpp backend,
+  Vulkan acceleration, caching, inspection, and a frequency-only fallback.
+
+### Changed
+
+- Document caches use codec version 2 so scored documents keep their word
+  weights across app restarts. Version 1 caches still load.
+
 ## 1.0.0 - 2026-08-15
 
 ### Added

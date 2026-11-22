@@ -85,6 +85,7 @@ def windowed_logprobs(
     bos: int | None,
     n_ctx: int,
     overlap: int,
+    progress: Callable[[int, int], None] | None = None,
 ) -> np.ndarray:
     """Natural-log probability of every token given the tokens before it."""
     n = len(tokens)
@@ -121,6 +122,8 @@ def windowed_logprobs(
             for j, value in zip(scored_positions, values):
                 logprobs[j] = value
         score_start = end
+        if progress is not None:
+            progress(end, len(tokens))
     return logprobs
 
 

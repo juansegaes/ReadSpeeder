@@ -106,7 +106,9 @@ import com.juckul.readspeeder.data.DocumentChapter
 import com.juckul.readspeeder.data.formatHtmlBlocks
 import com.juckul.readspeeder.data.formatPlainTextBlocks
 import com.juckul.readspeeder.data.MaxWpm
+import com.juckul.readspeeder.data.MaxWordWeight
 import com.juckul.readspeeder.data.MinWpm
+import com.juckul.readspeeder.data.MinWordWeight
 import com.juckul.readspeeder.data.ReadDocument
 import com.juckul.readspeeder.data.ReaderMode
 import com.juckul.readspeeder.data.ReadingAlignment
@@ -141,10 +143,11 @@ internal fun ReaderScreen(
     onProgressChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val prepared by produceState<PreparedReader?>(null, document.id, document.text, settings.splitHyphenatedWords) {
+    val splitHyphens = settings.splitHyphenatedWords && document.wordWeights == null
+    val prepared by produceState<PreparedReader?>(null, document.id, document.text, splitHyphens) {
         value = withContext(Dispatchers.Default) {
             traced("RSVP preparation") {
-                val readerText = parseReaderText(document.text, settings.splitHyphenatedWords)
+                val readerText = parseReaderText(document.text, splitHyphens)
                 val frequencies = buildMap {
                     readerText.words.groupingBy { it }.eachCount().forEach { (word, count) ->
                         val normalized = word.normalizedWord()
@@ -158,6 +161,9 @@ internal fun ReaderScreen(
                     wordFrequencies = frequencies,
                     chapterFlashStarts = document.chapters.map {
                         readerText.flashIndex(it.startWord)
+                    },
+                    wordWeights = document.wordWeights?.takeIf {
+                        it.size == readerText.words.size
                     },
                 )
             }
@@ -191,6 +197,7 @@ private data class PreparedReader(
     val readerText: ReaderText,
     val wordFrequencies: Map<String, Int>,
     val chapterFlashStarts: List<Int>,
+    val wordWeights: ShortArray? = null,
 )
 
 private data class PreparedStandard(
@@ -219,6 +226,7 @@ private fun PreparedReaderScreen(
     val sentences = readerText.sentences
     val previewSegments = readerText.previewSegments
     val wordFrequencies = prepared.wordFrequencies
+    val splitHyphens = settings.splitHyphenatedWords && document.wordWeights == null
     val standardListState = rememberLazyListState()
     var wordIndex by remember(document.id, words.size) {
         val lastIndex = words.lastIndex.coerceAtLeast(0)
@@ -233,7 +241,7 @@ private fun PreparedReaderScreen(
         document.id,
         document.text,
         document.formattedHtml,
-        settings.splitHyphenatedWords,
+        splitHyphens,
     ) {
         mutableStateOf<PreparedStandard?>(null)
     }
@@ -262,7 +270,7 @@ private fun PreparedReaderScreen(
                         var wordCount = 0
                         blocks.forEach { block ->
                             add(wordCount)
-                            wordCount += block.text.wordCount(settings.splitHyphenatedWords)
+                            wordCount += block.text.wordCount(splitHyphens)
                         }
                     },
                 )
@@ -321,19 +329,26 @@ private fun PreparedReaderScreen(
         words.size,
         settings.smartPauses,
         settings.complexWordPauses,
+        settings.darsvpTiming,
+        prepared.wordWeights,
     ) {
         while (playing && !holdPaused && words.isNotEmpty()) {
             val currentIndex = wordIndex
             val word = words[wordIndex]
+            val weights = prepared.wordWeights?.takeIf { settings.darsvpTiming }
             delay(
-                wordDelayMillis(
-                    word = word,
-                    wpm = wpm,
-                    smartPauses = settings.smartPauses,
-                    complexWordPauses = settings.complexWordPauses,
-                    occurrences = wordFrequencies[word.normalizedWord()] ?: 0,
-                    totalWords = words.size,
-                ),
+                if (weights != null) {
+                    darsvpDelayMillis(weights[currentIndex].toInt(), wpm)
+                } else {
+                    wordDelayMillis(
+                        word = word,
+                        wpm = wpm,
+                        smartPauses = settings.smartPauses,
+                        complexWordPauses = settings.complexWordPauses,
+                        occurrences = wordFrequencies[word.normalizedWord()] ?: 0,
+                        totalWords = words.size,
+                    )
+                },
             )
             if (!playing || holdPaused || wordIndex != currentIndex) continue
             if (wordIndex < words.lastIndex) {
@@ -879,6 +894,11 @@ internal fun previewStartLine(currentStart: Int, highlightedLine: Int): Int =
     } else {
         currentStart
     }
+
+internal fun darsvpDelayMillis(weight: Int, wpm: Int): Long {
+    val base = 60_000.0 / wpm.coerceIn(MinWpm, MaxWpm)
+    return (base * weight.coerceIn(MinWordWeight, MaxWordWeight) / 100.0).toLong()
+}
 
 internal fun wordDelayMillis(
     word: String,

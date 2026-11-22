@@ -15,6 +15,7 @@ internal class SettingsStore(context: Context) {
         defaultWpm = preferences.getInt("default_wpm", 300),
         smartPauses = preferences.getBoolean("smart_pauses", false),
         complexWordPauses = preferences.getBoolean("complex_word_pauses", false),
+        darsvpTiming = preferences.getBoolean("darsvp_timing", true),
         splitHyphenatedWords = preferences.getBoolean("split_hyphenated_words", true),
         playbackCountdown = preferences.getBoolean("playback_countdown", false),
         sentencePreview = preferences.getBoolean("sentence_preview", true),
@@ -38,6 +39,7 @@ internal class SettingsStore(context: Context) {
             putInt("default_wpm", value.defaultWpm)
             putBoolean("smart_pauses", value.smartPauses)
             putBoolean("complex_word_pauses", value.complexWordPauses)
+            putBoolean("darsvp_timing", value.darsvpTiming)
             putBoolean("split_hyphenated_words", value.splitHyphenatedWords)
             putBoolean("playback_countdown", value.playbackCountdown)
             putBoolean("sentence_preview", value.sentencePreview)

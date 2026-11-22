@@ -5,6 +5,17 @@ import org.junit.Test
 
 class ReaderTimingTest {
     @Test
+    fun darsvpWeightsScaleTheBaseWordTime() {
+        assertEquals(200, darsvpDelayMillis(100, 300))
+        assertEquals(300, darsvpDelayMillis(150, 300))
+        assertEquals(124, darsvpDelayMillis(62, 300))
+        assertEquals(250, darsvpDelayMillis(250, 600))
+        assertEquals(20, darsvpDelayMillis(5, 300))
+        assertEquals(2_000, darsvpDelayMillis(5_000, 300))
+        assertEquals(1_200, darsvpDelayMillis(100, 10))
+    }
+
+    @Test
     fun previewPagesByTwoLinesAtTheThirdLine() {
         assertEquals(0, previewStartLine(0, 0))
         assertEquals(0, previewStartLine(0, 1))

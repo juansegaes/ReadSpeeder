@@ -18,6 +18,7 @@ internal data class AppSettings(
     val defaultWpm: Int = 300,
     val smartPauses: Boolean = false,
     val complexWordPauses: Boolean = false,
+    val darsvpTiming: Boolean = true,
     val splitHyphenatedWords: Boolean = true,
     val playbackCountdown: Boolean = false,
     val sentencePreview: Boolean = true,

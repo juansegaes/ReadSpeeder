@@ -139,6 +139,12 @@ internal fun SettingsScreen(
         }
         item {
             SwitchSetting(
+                stringResource(R.string.darsvp_timing),
+                settings.darsvpTiming,
+            ) { onSettingsChange(settings.copy(darsvpTiming = it)) }
+        }
+        item {
+            SwitchSetting(
                 stringResource(R.string.split_hyphenated_words),
                 settings.splitHyphenatedWords,
             ) { onSettingsChange(settings.copy(splitHyphenatedWords = it)) }

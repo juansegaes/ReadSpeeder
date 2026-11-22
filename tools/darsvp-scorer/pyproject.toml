@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "darsvp-scorer"
+version = "0.1.0"
+description = "Score books for dynamic adaptive RSVP (daRSVP) reading"
+requires-python = ">=3.10"
+dependencies = [
+    "ebooklib",
+    "beautifulsoup4",
+    "lxml",
+    "wordfreq",
+    "numpy",
+    "Pillow",
+    "tomli; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+llm = ["llama-cpp-python"]
+test = ["pytest"]
+
+[project.scripts]
+darsvp-score = "darsvp_scorer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

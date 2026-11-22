@@ -23,3 +23,9 @@ signing.properties
 # Locally exported Android artifacts
 *.apk
 *.aab
+
+# daRSVP scorer
+tools/darsvp-scorer/.venv/
+tools/darsvp-scorer/.darsvp-cache/
+*.gguf
+

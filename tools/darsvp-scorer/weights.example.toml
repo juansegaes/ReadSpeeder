@@ -1,0 +1,37 @@
+# daRSVP weight configuration. Copy this file and pass it with --config.
+# Every value is optional; omitted keys use the defaults shown here.
+
+# --- content (per-word reading cost) ---
+w_surprisal = 0.22      # weight of the standardized surprisal term
+w_length = 0.12         # weight of the standardized word-length term
+w_freq = 0.08           # weight of the standardized (inverse) frequency term
+w_spill = 0.08          # extra cost from the previous word's surprisal
+z_surprisal_min = -2.0  # clip for the surprisal z-score
+z_surprisal_max = 3.0
+length_center = 5.0     # mean letters per word
+length_scale = 3.0      # standard deviation of letters per word
+z_length_min = -1.33
+z_length_max = 3.0
+zipf_center = 4.5       # mean Zipf frequency
+zipf_scale = 1.5        # standard deviation of Zipf frequency
+z_freq_min = -1.5
+z_freq_max = 2.5
+digit_zipf = 3.5        # Zipf value assumed for words containing digits
+content_min = 0.5       # minimum content multiplier
+content_max = 2.5       # maximum content multiplier
+empty_core_content = 0.5  # multiplier for words with no letters or digits
+
+# --- pauses (added on top, in units of the base word time) ---
+pause_chapter_end = 2.5
+pause_paragraph_end = 2.0
+pause_sentence_end = 1.5
+pause_semicolon_colon = 1.0
+pause_comma = 0.75
+pause_dash = 0.75
+pause_close_paren = 0.3
+pause_abbreviation = 0.3
+
+# --- final ---
+final_min = 0.4         # minimum multiplier after adding pauses
+final_max = 6.0         # maximum multiplier after adding pauses
+normalize = "content"   # "content" or "total"

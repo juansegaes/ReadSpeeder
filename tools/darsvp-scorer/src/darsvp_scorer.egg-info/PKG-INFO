@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: darsvp-scorer
+Version: 0.1.0
+Summary: Score books for dynamic adaptive RSVP (daRSVP) reading
+Requires-Python: >=3.10
+Requires-Dist: ebooklib
+Requires-Dist: beautifulsoup4
+Requires-Dist: lxml
+Requires-Dist: wordfreq
+Requires-Dist: numpy
+Requires-Dist: Pillow
+Requires-Dist: tomli; python_version < "3.11"
+Provides-Extra: llm
+Requires-Dist: llama-cpp-python; extra == "llm"
+Provides-Extra: test
+Requires-Dist: pytest; extra == "test"

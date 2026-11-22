@@ -105,6 +105,19 @@ class LlamaBackend:
             vocab = vocab()
         print(f"Vocab size: {vocab}")
 
+        try:
+            import llama_cpp
+
+            print(f"GPU offload: {llama_cpp.llama_supports_gpu_offload()}")
+            info = llama_cpp.llama_print_system_info()
+            if isinstance(info, bytes):
+                info = info.decode("utf-8", "replace")
+            for line in str(info).splitlines():
+                if line.strip():
+                    print(f"  {line.strip()}")
+        except Exception as error:
+            print(f"GPU info unavailable: {error}")
+
         order = np.argsort(last)[::-1][:5]
         print("Top 5 next tokens:")
         for token in order:

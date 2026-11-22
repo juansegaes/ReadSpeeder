@@ -247,7 +247,7 @@ def _inspect(args) -> int:
 def _check(args) -> int:
     from .surprisal.llama import LlamaBackend
 
-    backend = LlamaBackend(args.model, n_gpu_layers=args.n_gpu_layers)
+    backend = LlamaBackend(args.model, n_gpu_layers=args.n_gpu_layers, verbose=True)
     backend.check()
     return 0
 

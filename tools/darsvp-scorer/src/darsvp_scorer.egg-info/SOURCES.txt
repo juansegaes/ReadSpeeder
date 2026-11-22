@@ -1,7 +1,0 @@
-pyproject.toml
-src/darsvp_scorer.egg-info/PKG-INFO
-src/darsvp_scorer.egg-info/SOURCES.txt
-src/darsvp_scorer.egg-info/dependency_links.txt
-src/darsvp_scorer.egg-info/entry_points.txt
-src/darsvp_scorer.egg-info/requires.txt
-src/darsvp_scorer.egg-info/top_level.txt

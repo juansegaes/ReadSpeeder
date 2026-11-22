@@ -29,3 +29,9 @@ tools/darsvp-scorer/.venv/
 tools/darsvp-scorer/.darsvp-cache/
 *.gguf
 
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.egg-info/
+

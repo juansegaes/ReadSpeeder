@@ -10,6 +10,8 @@ Notable changes to ReadSpeeder are documented here.
   with its own timing from word length, frequency, language-model surprisal,
   and punctuation.
 - A "daRSVP timing for scored books" setting, on by default.
+- A "daRSVP strength" slider (0–100%) that blends scored timings with the
+  app's baseline length/punctuation timing; 100% is full daRSVP.
 - A desktop scorer (`tools/darsvp-scorer`) with a SmolLM3 llama.cpp backend,
   Vulkan acceleration, caching, inspection, and a frequency-only fallback.
 

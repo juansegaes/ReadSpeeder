@@ -330,6 +330,7 @@ private fun PreparedReaderScreen(
         settings.smartPauses,
         settings.complexWordPauses,
         settings.darsvpTiming,
+        settings.darsvpStrength,
         prepared.wordWeights,
     ) {
         while (playing && !holdPaused && words.isNotEmpty()) {
@@ -338,7 +339,18 @@ private fun PreparedReaderScreen(
             val weights = prepared.wordWeights?.takeIf { settings.darsvpTiming }
             delay(
                 if (weights != null) {
-                    darsvpDelayMillis(weights[currentIndex].toInt(), wpm)
+                    darsvpDelayMillis(
+                        weight = weights[currentIndex].toInt(),
+                        wpm = wpm,
+                        strength = settings.darsvpStrength,
+                        baselineMultiplier = baselineMultiplier(
+                            word = word,
+                            smartPauses = settings.smartPauses,
+                            complexWordPauses = settings.complexWordPauses,
+                            occurrences = wordFrequencies[word.normalizedWord()] ?: 0,
+                            totalWords = words.size,
+                        ),
+                    )
                 } else {
                     wordDelayMillis(
                         word = word,
@@ -895,20 +907,26 @@ internal fun previewStartLine(currentStart: Int, highlightedLine: Int): Int =
         currentStart
     }
 
-internal fun darsvpDelayMillis(weight: Int, wpm: Int): Long {
+internal fun darsvpDelayMillis(
+    weight: Int,
+    wpm: Int,
+    strength: Float = 1f,
+    baselineMultiplier: Double = 1.0,
+): Long {
     val base = 60_000.0 / wpm.coerceIn(MinWpm, MaxWpm)
-    return (base * weight.coerceIn(MinWordWeight, MaxWordWeight) / 100.0).toLong()
+    val darsvpMultiplier = weight.coerceIn(MinWordWeight, MaxWordWeight) / 100.0
+    val strengthFraction = strength.coerceIn(0f, 1f).toDouble()
+    val multiplier = baselineMultiplier + strengthFraction * (darsvpMultiplier - baselineMultiplier)
+    return (base * multiplier + 1e-9).toLong()
 }
 
-internal fun wordDelayMillis(
+internal fun baselineMultiplier(
     word: String,
-    wpm: Int,
     smartPauses: Boolean,
     complexWordPauses: Boolean = false,
     occurrences: Int = 0,
     totalWords: Int = 0,
-): Long {
-    val base = 60_000.0 / wpm.coerceIn(MinWpm, MaxWpm)
+): Double {
     val punctuation = word.trimEnd { it in "\"'”’»)]}" }.lastOrNull()
     val punctuationMultiplier = when {
         !smartPauses -> 1.0
@@ -921,7 +939,25 @@ internal fun wordDelayMillis(
     } else {
         0.0
     }
-    return (base * (punctuationMultiplier + complexityExtra)).toLong()
+    return punctuationMultiplier + complexityExtra
+}
+
+internal fun wordDelayMillis(
+    word: String,
+    wpm: Int,
+    smartPauses: Boolean,
+    complexWordPauses: Boolean = false,
+    occurrences: Int = 0,
+    totalWords: Int = 0,
+): Long {
+    val base = 60_000.0 / wpm.coerceIn(MinWpm, MaxWpm)
+    return (base * baselineMultiplier(
+        word,
+        smartPauses,
+        complexWordPauses,
+        occurrences,
+        totalWords,
+    )).toLong()
 }
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {

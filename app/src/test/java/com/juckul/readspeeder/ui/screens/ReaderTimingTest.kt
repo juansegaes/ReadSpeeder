@@ -16,6 +16,28 @@ class ReaderTimingTest {
     }
 
     @Test
+    fun darsvpStrengthBlendsWeightsWithTheBaseline() {
+        // base = 200 ms at 300 WPM
+        assertEquals(200, darsvpDelayMillis(250, 300, strength = 0f, baselineMultiplier = 1.0))
+        assertEquals(350, darsvpDelayMillis(250, 300, strength = 0.5f, baselineMultiplier = 1.0))
+        assertEquals(500, darsvpDelayMillis(250, 300, strength = 1f, baselineMultiplier = 1.0))
+
+        // A baseline of 2.0 (comma pause) moves the whole blend.
+        assertEquals(400, darsvpDelayMillis(250, 300, strength = 0f, baselineMultiplier = 2.0))
+        assertEquals(450, darsvpDelayMillis(250, 300, strength = 0.5f, baselineMultiplier = 2.0))
+        assertEquals(500, darsvpDelayMillis(250, 300, strength = 1f, baselineMultiplier = 2.0))
+    }
+
+    @Test
+    fun zeroStrengthMatchesThePreDarsvpTiming() {
+        val baseline = baselineMultiplier("word!", smartPauses = true)
+        assertEquals(
+            wordDelayMillis("word!", 300, true),
+            darsvpDelayMillis(100, 300, strength = 0f, baselineMultiplier = baseline),
+        )
+    }
+
+    @Test
     fun previewPagesByTwoLinesAtTheThirdLine() {
         assertEquals(0, previewStartLine(0, 0))
         assertEquals(0, previewStartLine(0, 1))

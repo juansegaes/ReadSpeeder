@@ -19,6 +19,7 @@ internal data class AppSettings(
     val smartPauses: Boolean = false,
     val complexWordPauses: Boolean = false,
     val darsvpTiming: Boolean = true,
+    val darsvpStrength: Float = 1f,
     val splitHyphenatedWords: Boolean = true,
     val playbackCountdown: Boolean = false,
     val sentencePreview: Boolean = true,
@@ -33,6 +34,7 @@ internal data class AppSettings(
 ) {
     fun validated() = copy(
         defaultWpm = ((defaultWpm / WpmStep) * WpmStep).coerceIn(MinWpm, MaxWpm),
+        darsvpStrength = darsvpStrength.takeIf(Float::isFinite)?.coerceIn(0f, 1f) ?: 1f,
         textSize = textSize.coerceIn(12, 32),
         lineSpacing = lineSpacing.takeIf(Float::isFinite)?.coerceIn(1f, 2f) ?: 1.5f,
         horizontalMargin = ((horizontalMargin / 4) * 4).coerceIn(8, 48),

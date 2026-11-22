@@ -143,6 +143,27 @@ internal fun SettingsScreen(
                 settings.darsvpTiming,
             ) { onSettingsChange(settings.copy(darsvpTiming = it)) }
         }
+        if (settings.darsvpTiming) {
+            item {
+                SliderSetting(
+                    title = stringResource(R.string.darsvp_strength),
+                    valueLabel = stringResource(
+                        R.string.darsvp_strength_value,
+                        (settings.darsvpStrength * 100).roundToInt(),
+                    ),
+                    value = settings.darsvpStrength,
+                    range = 0f..1f,
+                    steps = 19,
+                    onValueChange = {
+                        onSettingsChange(
+                            settings.copy(
+                                darsvpStrength = (it * 20).roundToInt() / 20f,
+                            ),
+                        )
+                    },
+                )
+            }
+        }
         item {
             SwitchSetting(
                 stringResource(R.string.split_hyphenated_words),

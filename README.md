@@ -19,6 +19,11 @@ Workflow:
 2. Copy the `.darsvp.json` file to the phone.
 3. Import it from the app's add button and read it.
 
+The **daRSVP strength** slider (Settings → Speed reading) blends the scored
+timing with the app's baseline length/punctuation timing: 0% is the plain
+baseline, 100% is the full daRSVP timing. Scored timings are relative, so the
+WPM slider still sets the overall pace.
+
 Read the background article:
 [What is daRSVP?](https://www.gardenofadam.com/writing/what-is-darsvp/)
 

@@ -74,6 +74,8 @@
     <string name="smart_pauses">Smart punctuation pauses</string>
     <string name="complex_word_pauses">Extra time for complex words</string>
     <string name="darsvp_timing">daRSVP timing for scored books</string>
+    <string name="darsvp_strength">daRSVP strength</string>
+    <string name="darsvp_strength_value">%1$d%%</string>
     <string name="split_hyphenated_words">Split hyphenated words</string>
     <string name="playback_countdown">Three-second countdown</string>
     <string name="sentence_preview">Sentence preview</string>

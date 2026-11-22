@@ -6,13 +6,39 @@ The RSVP reading app for android
 
 ## daRSVP fork
 
-This fork adds **dynamic adaptive RSVP (daRSVP)** to ReadSpeeder. A desktop
-scorer reads a book and gives every word its own display time from word length,
-frequency, language-model surprisal, and punctuation. The app imports the
-resulting `.darsvp.json` file and plays it with those timings. Ordinary
-TXT/PDF/EPUB documents keep the existing fixed-speed and smart-pause behavior.
+This repository is a fork of
+[juccul/ReadSpeeder](https://github.com/juccul/ReadSpeeder). Upstream is a
+fixed-speed RSVP reader. This fork adds **dynamic adaptive RSVP (daRSVP)**: a
+desktop scorer gives every word its own display time from word length, frequency,
+language-model surprisal, and punctuation. The app imports the resulting
+`.darsvp.json` file and plays it with those timings. Ordinary TXT/PDF/EPUB
+documents keep the upstream fixed-speed and smart-pause behavior.
 
-Workflow:
+### What differs from upstream
+
+| Area | Upstream ReadSpeeder | This fork |
+| --- | --- | --- |
+| Word timing | One speed for the whole book; optional smart pauses and complex-word pauses | Optional per-word timing from a scored `.darsvp.json` file |
+| Scored-book import | Not supported | Imports `.darsvp.json` (format version 1) |
+| Desktop tooling | None | `tools/darsvp-scorer`: TXT/EPUB scorer with a SmolLM3 llama.cpp backend, Vulkan acceleration, caching, inspection, and a frequency-only fallback |
+| Timing control | WPM slider | WPM slider plus a **daRSVP strength** slider (0–100%) that blends scored timing with the baseline length/punctuation timing |
+| Storage | Document cache codec version 1 | Codec version 2 stores per-word weights; version 1 caches still load |
+| Text cleanup | EPUB whitespace normalization | EPUB conversion also joins in-word tabs and repairs clear merged words |
+| Everything else | — | Unchanged: library, themes, typography, chapters, progress, standard reader, privacy |
+
+### Compatibility
+
+- The application ID is still `com.juckul.readspeeder`, so installing this build
+  replaces an upstream install only if it is signed with the same key. A debug
+  build signed with a different key needs the old app uninstalled first (which
+  erases its library).
+- Version 1 document caches load without migration. New caches use version 2.
+- Unscored documents behave exactly as upstream. The daRSVP setting only affects
+  documents that carry weights.
+- The app still has no network access. Scoring runs on the PC; the phone only
+  reads the JSON file.
+
+### Workflow
 
 1. Score the book on a PC with the
    [daRSVP scorer](tools/darsvp-scorer/README.md).
@@ -24,7 +50,8 @@ timing with the app's baseline length/punctuation timing: 0% is the plain
 baseline, 100% is the full daRSVP timing. Scored timings are relative, so the
 WPM slider still sets the overall pace.
 
-Read the background article:
+See [docs/daRSVP.md](docs/daRSVP.md) for the format, the scoring formula, and
+known limitations. Read the background article:
 [What is daRSVP?](https://www.gardenofadam.com/writing/what-is-darsvp/)
 
 ReadSpeeder is a free and open-source Android app for reading text with rapid

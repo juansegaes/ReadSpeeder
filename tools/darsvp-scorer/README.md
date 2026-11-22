@@ -5,6 +5,10 @@
 Android app imports that file and uses the weights to give each word its own
 display time (dynamic adaptive RSVP).
 
+This tool is part of the daRSVP fork and is not present in upstream
+ReadSpeeder. See [docs/daRSVP.md](../../docs/daRSVP.md) for what the fork adds
+and what stays the same.
+
 The scorer runs on the PC. The phone never parses the EPUB for a scored book,
 so the word sequence and the weights always line up.
 
